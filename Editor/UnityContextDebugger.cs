@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Text;
-using Automa.Entities;
 using Automa.Entities.Systems;
-using Automa.Entities.Unity;
 using UnityEditor;
 using UnityEngine;
 
-namespace Automa.Assets.Plugins.Entities.Unity.Editor
+namespace Automa.Entities.Unity.Editor
 {
     public class UnityContextDebugger : EditorWindow
     {
+        private GUIStyle groupNameStyle;
+        private GuiStyles styles;
+
         [MenuItem("Window/Context Debugger")]
         static void Init()
         {
@@ -23,6 +24,13 @@ namespace Automa.Assets.Plugins.Entities.Unity.Editor
             OnSelectionChange();
             lastUpdate = 0;
             titleContent = new GUIContent("Context Debugger");
+
+            groupNameStyle = new GUIStyle()
+            {
+                fontStyle = FontStyle.Bold
+            };
+
+            styles = Resources.Load<GuiStyles>("Styles");
         }
 
         private UnityContext unityContext;
@@ -49,7 +57,8 @@ namespace Automa.Assets.Plugins.Entities.Unity.Editor
         
         private void OnGUI()
         {
-            if (unityContext == null || unityContext.context == null) return;
+            if (unityContext == null || unityContext.Context == null) return;
+            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
             var systems = unityContext.SystemManager;
             if (systems != null)
             {
@@ -60,6 +69,7 @@ namespace Automa.Assets.Plugins.Entities.Unity.Editor
             {
                 DrawGroups(entities);
             }
+            EditorGUILayout.EndScrollView();
             lastUpdate = Time.realtimeSinceStartup;
         }
 
@@ -69,6 +79,7 @@ namespace Automa.Assets.Plugins.Entities.Unity.Editor
             EditorGUILayout.Separator();
 
             var debug = systems.DebugInfo;
+            if (debug == null) return;
             var systemsDebugInfos = debug.Systems;
 
             if (systemsDebugInfos.Length == 0)
@@ -82,8 +93,8 @@ namespace Automa.Assets.Plugins.Entities.Unity.Editor
                     var type = systemsDebugInfos[i].System.GetType();
                     var time = systemsDebugInfos[i].UpdateTime;
 
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.PrefixLabel(type.Name);
+                    EditorGUILayout.BeginHorizontal(GUI.skin.box);
+                    EditorGUILayout.PrefixLabel(type.Name, groupNameStyle);
                     EditorGUILayout.LabelField($"{time.Ticks / (float)TimeSpan.TicksPerMillisecond:0.00} ms");
                     EditorGUILayout.EndHorizontal();
                 }
@@ -92,12 +103,15 @@ namespace Automa.Assets.Plugins.Entities.Unity.Editor
             EditorGUILayout.EndVertical();
         }
 
+        private Vector2 scrollPosition;
+
         private void DrawGroups(EntityManager entities)
         {
             EditorGUILayout.BeginVertical();
             EditorGUILayout.Separator();
 
             var debug = entities.DebugInfo;
+            if (debug == null) return;
             var groupDebugInfos = debug.Groups;
 
             if (groupDebugInfos.Length == 0)
@@ -117,27 +131,33 @@ namespace Automa.Assets.Plugins.Entities.Unity.Editor
                         name = $"{groupType.DeclaringType.Name}+{name}";
                     }
 
-                    EditorGUILayout.LabelField($"{name} ({@group.Count})");
-                    StringBuilder sb = new StringBuilder();
+                    EditorGUILayout.BeginVertical(GUI.skin.box);
+
+                    EditorGUILayout.LabelField($"{name} ({@group.Count})", groupNameStyle);
+
+                    var rect = EditorGUILayout.BeginHorizontal();
                     foreach (var included in debugInfo.IncludeTypes)
                     {
-                        sb.Append(included.Name);
-                        sb.Append(", ");
+                        var labelRect = GUILayoutUtility.GetRect(new GUIContent(included.Name), styles.includeType);
+                        labelRect.x = rect.x;
+                        labelRect.y = rect.y;
+                        EditorGUI.LabelField(labelRect, included.Name, styles.includeType);
+                        rect.x += labelRect.width + 2;
                     }
-                    if (sb.Length != 0)
-                    {
-                        EditorGUILayout.LabelField("I: " + sb);
-                    }
-                    sb.Clear();
+                    EditorGUILayout.EndHorizontal();
+
+                    rect = EditorGUILayout.BeginHorizontal();
                     foreach (var included in debugInfo.ExcludeTypes)
                     {
-                        sb.Append(included.Name);
-                        sb.Append(", ");
+                        var labelRect = GUILayoutUtility.GetRect(new GUIContent(included.Name), styles.excludeType);
+                        labelRect.x = rect.x;
+                        labelRect.y = rect.y;
+                        EditorGUI.LabelField(labelRect, included.Name, styles.excludeType);
+                        rect.x += labelRect.width + 2;
                     }
-                    if (sb.Length != 0)
-                    {
-                        EditorGUILayout.LabelField("E: " + sb);
-                    }
+                    EditorGUILayout.EndHorizontal();
+
+                    EditorGUILayout.EndVertical();
                 }
             }
 

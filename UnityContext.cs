@@ -9,6 +9,8 @@ namespace Automa.Entities.Unity
         public bool Debug;
         internal IContext context;
 
+        public IContext Context => context;
+
         public EntityManager EntityManager { get; private set; }
         public EntityEventManager EventManager { get; private set; }
         public SystemManager SystemManager { get; private set; }
@@ -27,6 +29,11 @@ namespace Automa.Entities.Unity
         private void Update()
         {
             context.Update();
+        }
+
+        void OnDestroy()
+        {
+            context.Dispose();
         }
     }
 }
