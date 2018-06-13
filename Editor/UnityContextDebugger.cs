@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using Automa.Entities.Systems;
 using UnityEditor;
 using UnityEngine;
@@ -90,11 +89,12 @@ namespace Automa.Entities.Unity.Editor
             {
                 for (int i = 0; i < systemsDebugInfos.Length; i++)
                 {
-                    var type = systemsDebugInfos[i].System.GetType();
+                    var system = systemsDebugInfos[i].System;
+                    var type = system.GetType();
                     var time = systemsDebugInfos[i].UpdateTime;
 
                     EditorGUILayout.BeginHorizontal(GUI.skin.box);
-                    EditorGUILayout.PrefixLabel(type.Name, groupNameStyle);
+                    system.IsEnabled = GUILayout.Toggle(system.IsEnabled, type.Name);
                     EditorGUILayout.LabelField($"{time.Ticks / (float)TimeSpan.TicksPerMillisecond:0.00} ms");
                     EditorGUILayout.EndHorizontal();
                 }
