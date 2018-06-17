@@ -1,11 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-[CreateAssetMenu(fileName = "Styles.asset", menuName = "Styles", order = 600)]
-public class GuiStyles : ScriptableObject
+namespace Automa.Entities.Unity
 {
+    [CreateAssetMenu(fileName = "Styles.asset", menuName = "Styles", order = 600)]
+    public class GuiStyles : ScriptableObject
+    {
 
-    public GUIStyle includeType;
-    public GUIStyle excludeType;
+        public GUIStyle includeType;
+        public GUIStyle excludeType;
+    }
 }

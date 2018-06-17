@@ -5,7 +5,7 @@ using Automa.Entities.Systems;
 using UnityEditor;
 using UnityEngine;
 
-namespace Automa.Entities.Unity.Editor
+namespace Automa.Entities.Unity
 {
     public class UnityContextDebugger : EditorWindow
     {
@@ -173,7 +173,7 @@ namespace Automa.Entities.Unity.Editor
             var width = Screen.width - 60;
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(name, groupNameStyle, GUILayout.Width(width - 30));
-            EditorGUILayout.LabelField(group.Count.ToString(), groupNameStyle, GUILayout.Width(30));
+            EditorGUILayout.LabelField(group.Count.ToString(), GUILayout.Width(30));
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
