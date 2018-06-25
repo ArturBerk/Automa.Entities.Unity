@@ -1,51 +1,16 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using Automa.Entities.Builders;
+using UnityEngine;
 
 namespace Automa.Entities.Unity.Templates
 {
-    public class EntityTemplate<T> : MonoBehaviour
+    public class EntityTemplate<TParameter> : MonoBehaviour
     {
-        public string Tag => gameObject.name;
-
-        public virtual void Build(IEntityBuilder entityBuilder, T parameter)
+        public EntityBuilder<TParameter> GetBuilder()
         {
-            Build(entityBuilder, transform, parameter);
-        }
-
-        public virtual void AfterBuild(IEntityBuilder entityBuilder, T parameter)
-        {
-            AfterBuild(entityBuilder, transform, parameter);
-        }
-
-        protected static void Build(IEntityBuilder entityBuilder, Transform transform, T parameter)
-        {
-            foreach (var componentTemplate in transform.GetComponents<ComponentTemplate<T>>())
-            {
-                componentTemplate.Build(entityBuilder, parameter);
-            }
-            for (var i = 0; i < transform.childCount; i++)
-            {
-                var child = transform.GetChild(i);
-                if (child.GetComponent<EntityTemplate<T>>() == null)
-                {
-                    Build(entityBuilder, child, parameter);
-                }
-            }
-        }
-
-        protected static void AfterBuild(IEntityBuilder entityBuilder, Transform transform, T parameter)
-        {
-            foreach (var componentTemplate in transform.GetComponents<ComponentTemplate<T>>())
-            {
-                componentTemplate.AfterBuild(entityBuilder, parameter);
-            }
-            for (var i = 0; i < transform.childCount; i++)
-            {
-                var child = transform.GetChild(i);
-                if (child.GetComponent<EntityTemplate<T>>() == null)
-                {
-                    Build(entityBuilder, child, parameter);
-                }
-            }
+            return new EntityBuilder<TParameter>(gameObject.name, 
+                GetComponentsInChildren<ComponentTemplate<TParameter>>()
+                .Select(template => template.GetBuilder()));
         }
     }
 }
