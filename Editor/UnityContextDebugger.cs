@@ -12,7 +12,6 @@ namespace Automa.Entities.Unity
         private static readonly List<bool> systemsGroupsExpanded = new List<bool>();
         private GUIStyle expanderStyle;
         private GUIStyle groupNameStyle;
-        private bool groupsToggled;
 
         private float lastUpdate;
 

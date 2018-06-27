@@ -6,9 +6,11 @@ namespace Automa.Entities.Unity.Templates
 {
     public class EntityTemplate<TParameter> : MonoBehaviour
     {
+        public virtual string Name => gameObject.name;
+
         public EntityBuilder<TParameter> GetBuilder()
         {
-            return new EntityBuilder<TParameter>(gameObject.name, 
+            return new EntityBuilder<TParameter>(Name, 
                 GetComponentsInChildren<ComponentTemplate<TParameter>>()
                 .Select(template => template.GetBuilder()));
         }

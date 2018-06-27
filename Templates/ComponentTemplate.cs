@@ -2,6 +2,8 @@
 using Automa.Entities.Builders;
 using UnityEngine;
 
+#pragma warning disable 649
+
 namespace Automa.Entities.Unity.Templates
 {
     public abstract class ComponentTemplate<TParameter> : MonoBehaviour
