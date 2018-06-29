@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Automa.Entities.Debugging;
 using Automa.Entities.Systems;
+using Automa.Entities.Systems.Debugging;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace Automa.Entities.Unity
 {
     public class UnityContextDebugger : EditorWindow
     {
-        private static readonly List<bool> systemsGroupsExpanded = new List<bool>();
+        private static readonly Dictionary<string, bool> systemsGroupsExpanded = new Dictionary<string, bool>();
         private GUIStyle expanderStyle;
         private GUIStyle groupNameStyle;
 
@@ -27,7 +28,7 @@ namespace Automa.Entities.Unity
         private static void Init()
         {
             // Get existing open window or if none, make a new one:
-            var window = (UnityContextDebugger) GetWindow(typeof(UnityContextDebugger));
+            var window = (UnityContextDebugger)GetWindow(typeof(UnityContextDebugger));
             window.Show();
         }
 
@@ -48,13 +49,14 @@ namespace Automa.Entities.Unity
             };
 
             styles = Resources.Load<GuiStyles>("Styles");
+
         }
 
         private void OnSelectionChange()
         {
             if (Selection.activeObject is GameObject)
             {
-                unityContext = ((GameObject) Selection.activeObject).GetComponent<UnityContext>();
+                unityContext = ((GameObject)Selection.activeObject).GetComponent<UnityContext>();
                 lastUpdate = 0;
             }
         }
@@ -71,7 +73,9 @@ namespace Automa.Entities.Unity
         private void OnGUI()
         {
             if (expanderStyle == null)
+            {
                 expanderStyle = new GUIStyle(GUI.skin.box);
+            }
             if (unityContext == null || unityContext.Context == null) return;
             scrollPosition =
                 EditorGUILayout.BeginScrollView(scrollPosition, false, false, GUILayout.Width(Screen.width));
@@ -81,72 +85,98 @@ namespace Automa.Entities.Unity
             {
                 EditorGUILayout.BeginVertical(expanderStyle);
                 systemsToggled = EditorGUILayout.Foldout(systemsToggled, contextDebug != null
-                    ? $"Systems ({contextDebug.UpdateTime.Ticks / (float) TimeSpan.TicksPerMillisecond:0.00} ms)"
+                    ? $"Systems ({contextDebug.UpdateTime.Ticks / (float)TimeSpan.TicksPerMillisecond:0.00} ms)"
                     : "Systems");
-                if (systemsToggled)
+                if (systemsToggled && systems.DebugInfo != null)
                 {
-                    DrawSystems(systems);
+                    DrawSystems(systems.DebugInfo.Systems, EditorGUIUtility.currentViewWidth, true);
                 }
                 EditorGUILayout.EndVertical();
             }
-//            var entities = unityContext.EntityManager;
-//            if (entities != null)
-//            {
-//                EditorGUILayout.BeginVertical(expanderStyle);
-//                groupsToggled = EditorGUILayout.Foldout(groupsToggled, "Groups");
-//                
-//                EditorGUILayout.EndVertical();
-//            }
+            //            var entities = unityContext.EntityManager;
+            //            if (entities != null)
+            //            {
+            //                EditorGUILayout.BeginVertical(expanderStyle);
+            //                groupsToggled = EditorGUILayout.Foldout(groupsToggled, "Groups");
+            //                
+            //                EditorGUILayout.EndVertical();
+            //            }
             EditorGUILayout.EndScrollView();
             lastUpdate = Time.realtimeSinceStartup;
         }
 
-        private void DrawSystems(SystemManager systems)
+        private void DrawSystems(SystemDebugInfo[] systemsDebugInfos, float areaWidth, bool isEnabled)
         {
-            var debug = systems.DebugInfo;
-            if (debug == null) return;
-            var systemsDebugInfos = debug.Systems;
-
             if (systemsDebugInfos.Length == 0)
             {
                 EditorGUILayout.LabelField("Where is no systems in context");
+                return;
             }
-            else
+            var width = areaWidth - 60;
+            for (var i = 0; i < systemsDebugInfos.Length; i++)
             {
-                var width = EditorGUIUtility.currentViewWidth - 60;
-                if (systemsGroupsExpanded.Count < systemsDebugInfos.Length)
+                var systemsDebugInfo = systemsDebugInfos[i];
+                if (systemsDebugInfo is SystemGroupDebugInfo systemGroupDebug)
                 {
-                    var count = systemsDebugInfos.Length - systemsGroupsExpanded.Count;
-                    for (var i = 0; i < count; i++)
+                    var systemGroup = systemGroupDebug.SystemGroup;
+                    var type = systemGroup.GetType();
+                    var time = systemsDebugInfo.UpdateTime;
+
+                    var backgroundColor = GUI.backgroundColor;
+                    GUI.backgroundColor = new Color(0.8f, 0.8f, 0.8f);
+                    EditorGUILayout.BeginVertical(GUI.skin.box);
+                    EditorGUILayout.BeginHorizontal();
+
+                    var expanded = SetExpanded(type, GUILayout.Toggle(IsExpanded(type), "", EditorStyles.foldout,
+                            GUILayout.Width(16)));
+
+                    systemGroup.IsEnabled = GUILayout.Toggle(systemGroup.IsEnabled, "", GUILayout.Width(16));
+                    EditorGUILayout.LabelField(type.Name, GUILayout.Width(width - 82));
+                    var currentIsEnabled = systemGroup.IsEnabled && isEnabled;
+                    if (currentIsEnabled)
                     {
-                        systemsGroupsExpanded.Add(false);
+                        EditorGUILayout.LabelField($"{time.Ticks / (float) TimeSpan.TicksPerMillisecond:0.00} ms",
+                            GUILayout.Width(50));
                     }
+                    EditorGUILayout.EndHorizontal();
+
+                    if (expanded)
+                    {
+                        DrawSystems(systemGroupDebug.Systems, width, currentIsEnabled);
+                    }
+                    EditorGUILayout.EndVertical();
+                    GUI.backgroundColor = backgroundColor;
                 }
-                for (var i = 0; i < systemsDebugInfos.Length; i++)
+                else
                 {
-                    var systemsDebugInfo = systemsDebugInfos[i];
                     var system = systemsDebugInfo.System;
                     var type = system.GetType();
                     var time = systemsDebugInfo.UpdateTime;
                     var groups = systemsDebugInfo.Groups;
 
+                    var backgroundColor = GUI.backgroundColor;
+                    GUI.backgroundColor = new Color(0.9f, 0.9f, 0.9f);
                     EditorGUILayout.BeginVertical(GUI.skin.box);
                     EditorGUILayout.BeginHorizontal();
+                    var expanded = false;
                     if (groups == null || groups.Length == 0)
                     {
                         EditorGUILayout.LabelField("", GUILayout.Width(16));
                     }
                     else
                     {
-                        systemsGroupsExpanded[i] = GUILayout.Toggle(systemsGroupsExpanded[i], "", EditorStyles.foldout,
-                            GUILayout.Width(16));
+                        expanded = SetExpanded(type, GUILayout.Toggle(IsExpanded(type), "", EditorStyles.foldout,
+                            GUILayout.Width(16)));
                     }
                     system.IsEnabled = GUILayout.Toggle(system.IsEnabled, "", GUILayout.Width(16));
                     EditorGUILayout.LabelField(type.Name, GUILayout.Width(width - 82));
-                    EditorGUILayout.LabelField($"{time.Ticks / (float) TimeSpan.TicksPerMillisecond:0.00} ms",
-                        GUILayout.Width(50));
+                    if (system.IsEnabled && isEnabled)
+                    {
+                        EditorGUILayout.LabelField($"{time.Ticks / (float) TimeSpan.TicksPerMillisecond:0.00} ms",
+                            GUILayout.Width(50));
+                    }
                     EditorGUILayout.EndHorizontal();
-                    if (groups != null && groups.Length > 0 && systemsGroupsExpanded[i])
+                    if (expanded)
                     {
                         foreach (var group in groups)
                         {
@@ -154,8 +184,26 @@ namespace Automa.Entities.Unity
                         }
                     }
                     EditorGUILayout.EndVertical();
+                    GUI.backgroundColor = backgroundColor;
                 }
             }
+        }
+
+        private bool SetExpanded(Type type, bool value)
+        {
+            var typeName = type.FullName;
+            systemsGroupsExpanded[typeName ?? ""] = value;
+            return value;
+        }
+
+        private bool IsExpanded(Type type)
+        {
+            var typeName = type.FullName;
+            if (systemsGroupsExpanded.TryGetValue(typeName ?? "", out var result))
+            {
+                return result;
+            }
+            return false;
         }
 
         private void DrawGroup(GroupDebugInfo debugInfo)
