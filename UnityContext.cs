@@ -12,7 +12,7 @@ namespace Automa.Entities.Unity
         public IContext Context => context;
 
         public EntityManager EntityManager { get; private set; }
-        public EntityEventManager EventManager { get; private set; }
+        public EventManager EventManager { get; private set; }
         public SystemManager SystemManager { get; private set; }
 
         private void Awake()
@@ -20,7 +20,7 @@ namespace Automa.Entities.Unity
             context = ContextFactory.CreateEntitiesContext(Debug);
             EntityManager = context.GetManager<EntityManager>();
             SystemManager = context.GetManager<SystemManager>();
-            EventManager = context.GetManager<EntityEventManager>();
+            EventManager = context.GetManager<EventManager>();
             Setup();
         }
 
