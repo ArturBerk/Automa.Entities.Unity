@@ -1,20 +1,20 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Automa.Entities.Debugging;
-using Automa.Entities.Systems;
 using Automa.Entities.Systems.Debugging;
 using UnityEditor;
 using UnityEngine;
 
-namespace Automa.Entities.Unity
+namespace Automa.Entities.Unity.Editor
 {
-    public class UnityContextDebugger : EditorWindow
+    [CustomEditor(typeof(UnityContext), true)]
+    class UnityContextDebugger : UnityEditor.Editor
     {
+        public static float UpdateInterval = 0.1f;
         private static readonly Dictionary<string, bool> systemsGroupsExpanded = new Dictionary<string, bool>();
         private GUIStyle expanderStyle;
         private GUIStyle groupNameStyle;
-
-        private float lastUpdate;
 
         private Vector2 scrollPosition;
         private GuiStyles styles;
@@ -23,21 +23,15 @@ namespace Automa.Entities.Unity
 
         private UnityContext unityContext;
         private GUIStyle wrapStyle;
+        private Coroutine updateCycleCoroutine;
 
-        [MenuItem("Window/Context Debugger")]
-        private static void Init()
+        void OnEnable()
         {
-            // Get existing open window or if none, make a new one:
-            var window = (UnityContextDebugger)GetWindow(typeof(UnityContextDebugger));
-            window.Show();
-        }
-
-        private void OnEnable()
-        {
-            OnSelectionChange();
-            lastUpdate = 0;
-            titleContent = new GUIContent("Context Debugger");
-
+            unityContext = serializedObject.targetObject as UnityContext;
+            if (unityContext != null)
+            {
+                updateCycleCoroutine = unityContext.StartCoroutine(UpdateCicle());
+            }
             groupNameStyle = new GUIStyle
             {
                 //fontStyle = FontStyle.Bold
@@ -49,29 +43,30 @@ namespace Automa.Entities.Unity
             };
 
             styles = Resources.Load<GuiStyles>("Styles");
-
         }
 
-        private void OnSelectionChange()
+        IEnumerator UpdateCicle()
         {
-            if (Selection.activeObject is GameObject)
+            while (true)
             {
-                unityContext = ((GameObject)Selection.activeObject).GetComponent<UnityContext>();
-                lastUpdate = 0;
-            }
-        }
-
-        private void Update()
-        {
-            if (Time.realtimeSinceStartup > lastUpdate + 0.5f)
-            {
-                if (unityContext == null) OnSelectionChange();
+                yield return new WaitForSecondsRealtime(UpdateInterval);
                 Repaint();
             }
         }
 
-        private void OnGUI()
+        void OnDisable()
         {
+            if (unityContext != null && updateCycleCoroutine != null)
+            {
+                unityContext.StopCoroutine(updateCycleCoroutine);
+            }
+            updateCycleCoroutine = null;
+            unityContext = null;
+        }
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
             if (expanderStyle == null)
             {
                 expanderStyle = new GUIStyle(GUI.skin.box);
@@ -102,8 +97,8 @@ namespace Automa.Entities.Unity
             //                EditorGUILayout.EndVertical();
             //            }
             EditorGUILayout.EndScrollView();
-            lastUpdate = Time.realtimeSinceStartup;
         }
+
 
         private void DrawSystems(SystemDebugInfo[] systemsDebugInfos, float areaWidth, bool isEnabled)
         {
@@ -124,6 +119,8 @@ namespace Automa.Entities.Unity
 
                     var backgroundColor = GUI.backgroundColor;
                     GUI.backgroundColor = new Color(0.8f, 0.8f, 0.8f);
+
+                    EditorGUI.indentLevel = 0;
                     EditorGUILayout.BeginVertical(GUI.skin.box);
                     EditorGUILayout.BeginHorizontal();
 
@@ -135,7 +132,7 @@ namespace Automa.Entities.Unity
                     var currentIsEnabled = systemGroup.IsEnabled && isEnabled;
                     if (currentIsEnabled)
                     {
-                        EditorGUILayout.LabelField($"{time.Ticks / (float) TimeSpan.TicksPerMillisecond:0.00} ms",
+                        EditorGUILayout.LabelField($"{time.Ticks / (float)TimeSpan.TicksPerMillisecond:0.00} ms",
                             GUILayout.Width(50));
                     }
                     EditorGUILayout.EndHorizontal();
@@ -172,7 +169,7 @@ namespace Automa.Entities.Unity
                     EditorGUILayout.LabelField(type.Name, GUILayout.Width(width - 82));
                     if (system.IsEnabled && isEnabled)
                     {
-                        EditorGUILayout.LabelField($"{time.Ticks / (float) TimeSpan.TicksPerMillisecond:0.00} ms",
+                        EditorGUILayout.LabelField($"{time.Ticks / (float)TimeSpan.TicksPerMillisecond:0.00} ms",
                             GUILayout.Width(50));
                     }
                     EditorGUILayout.EndHorizontal();
