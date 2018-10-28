@@ -8,13 +8,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c17a1c601ac28242bc1e04bfabbad05, type: 3}
+  m_Script: {fileID: 11500000, guid: 110736f1a46f113449c128568335c859, type: 3}
   m_Name: Styles
   m_EditorClassIdentifier: 
   includeType:
     m_Name: 
     m_Normal:
-      m_Background: {fileID: 2800000, guid: cc0ae8e02b8a5bc44b32099dc07e2732, type: 3}
+      m_Background: {fileID: 0}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Hover:
@@ -46,20 +46,20 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Border:
-      m_Left: 2
-      m_Right: 2
-      m_Top: 2
-      m_Bottom: 2
+      m_Left: 0
+      m_Right: 0
+      m_Top: 0
+      m_Bottom: 0
     m_Margin:
       m_Left: 0
       m_Right: 0
       m_Top: 0
       m_Bottom: 0
     m_Padding:
-      m_Left: 2
-      m_Right: 2
-      m_Top: 2
-      m_Bottom: 2
+      m_Left: 0
+      m_Right: 0
+      m_Top: 0
+      m_Bottom: 0
     m_Overflow:
       m_Left: 0
       m_Right: 0
@@ -81,7 +81,7 @@ MonoBehaviour:
   excludeType:
     m_Name: 
     m_Normal:
-      m_Background: {fileID: 2800000, guid: 7b19cf88dac72d645a97f1a963bed8f9, type: 3}
+      m_Background: {fileID: 0}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Hover:
@@ -113,20 +113,20 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Border:
-      m_Left: 2
-      m_Right: 2
-      m_Top: 2
-      m_Bottom: 2
+      m_Left: 0
+      m_Right: 0
+      m_Top: 0
+      m_Bottom: 0
     m_Margin:
       m_Left: 0
       m_Right: 0
       m_Top: 0
       m_Bottom: 0
     m_Padding:
-      m_Left: 2
-      m_Right: 2
-      m_Top: 2
-      m_Bottom: 2
+      m_Left: 0
+      m_Right: 0
+      m_Top: 0
+      m_Bottom: 0
     m_Overflow:
       m_Left: 0
       m_Right: 0
